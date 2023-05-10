@@ -1,50 +1,57 @@
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { fireEvent, render, screen } from "@testing-library/react";
 import SummaryForm from "../SummaryForm";
+import userEvent from "@testing-library/user-event";
 
-test("initial render", () => {
+test("Initial conditions", () => {
   render(<SummaryForm />);
 
   const checkbox = screen.getByRole("checkbox", {
     name: /terms and conditions/i,
   });
-  const submitBtn = screen.getByRole("button", { name: /confirm order/i });
+
   expect(checkbox).not.toBeChecked();
-  expect(submitBtn).toBeDisabled();
+
+  const confirmButton = screen.getByRole("button", { name: /confirm order/i });
+  expect(confirmButton).toBeDisabled();
 });
 
-test("Checks if checkbox disabled button when checked", async () => {
+test("Checkbox enables button on first click and disables button on second click", async () => {
   const user = userEvent.setup();
+
   render(<SummaryForm />);
 
   const checkbox = screen.getByRole("checkbox", {
     name: /terms and conditions/i,
   });
-  const submitBtn = screen.getByRole("button", { name: /confirm order/i });
+  const confirmButton = screen.getByRole("button", { name: /confirm order/i });
 
   await user.click(checkbox);
-  expect(submitBtn).toBeEnabled();
+  expect(checkbox).toBeChecked();
+  expect(confirmButton).toBeEnabled();
 
   await user.click(checkbox);
-  expect(submitBtn).toBeDisabled();
+  expect(checkbox).not.toBeChecked();
+  expect(confirmButton).toBeDisabled();
 });
 
 test("popover responds to hover", async () => {
   const user = userEvent.setup();
+
   render(<SummaryForm />);
 
-  const nullPopover = screen.queryByText(
+  const nullPopOver = screen.queryByText(
     /no ice cream will actually be delivered/i
   );
-  expect(nullPopover).not.toBeInTheDocument();
 
-  const termsAndConditions = screen.getByText(/terms and conditions/i);
-  await user.hover(termsAndConditions);
-  const popover = screen.getByText(
+  expect(nullPopOver).not.toBeInTheDocument();
+  const terms = screen.getByText(/terms and conditions/i);
+
+  await user.hover(terms);
+  const popOver = screen.queryByText(
     /no ice cream will actually be delivered/i
   );
-  expect(popover).toBeInTheDocument();
+  expect(popOver).toBeInTheDocument();
 
-  await user.unhover(termsAndConditions);
-  expect(popover).not.toBeInTheDocument();
+  await user.unhover(terms);
+  expect(popOver).not.toBeInTheDocument();
 });
